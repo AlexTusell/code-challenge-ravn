@@ -1,21 +1,28 @@
 import {
   Avatar as AvatarChakra,
   Box,
+  Button,
   Flex,
   Image,
   Input,
   Text,
+  useDisclosure,
 } from '@chakra-ui/react';
 import React, { useContext, useEffect, useState } from 'react';
 import { DragDropContext } from 'react-beautiful-dnd';
 import MagnifyingGlass from '../img/magnifying glass.svg';
 import Bell from '../img/bell.svg';
 import Plus from '../img/plus.svg';
+import Column from '../img/column.svg';
+import List from '../img/list.svg';
+import ColumnSelected from '../img/column selected.svg';
+import ListSelected from '../img/list selected.svg';
 import { gql, useQuery } from '@apollo/client';
 import Dashboard from './Dashboard';
 import { ViewContext } from '../contexts/ViewContext';
 import MyTask from './MyTask';
 import Avatar from './Avatar';
+import TaskModal from './TaskModal';
 
 const GET_PROFILE = gql`
   query {
@@ -85,7 +92,9 @@ const Workspace = () => {
   } = useQuery(GET_PROFILE);
   const [dataSorted, setDataSorted] = useState([]);
 
-  const { isDashboard } = useContext(ViewContext);
+  const { isDashboard, setIsDashboard } = useContext(ViewContext);
+  const { isOpen, onOpen, onClose } = useDisclosure();
+  console.log(isOpen);
 
   useEffect(() => {
     if (dataTasks) {
@@ -162,62 +171,58 @@ const Workspace = () => {
   };
 
   return (
-    <DragDropContext onDragEnd={onDragEnd}>
-      <Box w="100%">
-        <Flex
-          w="100%"
-          h="64px"
-          borderRadius="16px"
-          bgColor="gray.400"
-          alignItems="center"
-          justifyContent="space-between"
-          gap={5}
-          px={5}
-        >
-          <Image src={MagnifyingGlass} />
-          <Input variant="unstyled" placeholder="Search" />
-          <Image src={Bell} />
-          {loadingProfile ? (
-            <AvatarChakra size="sm" />
-          ) : (
-            <Avatar image={dataProfile.avatar} />
-          )}
-        </Flex>
-        <Flex justifyContent="space-between" my={8}>
-          <Flex gap={3}>
-            <Box
-              w="40px"
-              h="40px"
-              bgColor="orange.500"
-              borderRadius="8px"
-            ></Box>
-            <Box
-              w="40px"
-              h="40px"
-              bgColor="orange.500"
-              borderRadius="8px"
-            ></Box>
-          </Flex>
+    <>
+      <TaskModal isOpen={isOpen} onClose={onClose} />
+      <DragDropContext onDragEnd={onDragEnd}>
+        <Box w="100%">
           <Flex
-            w="40px"
-            h="40px"
-            bgColor="orange.500"
-            borderRadius="8px"
+            w="100%"
+            h="64px"
+            borderRadius="16px"
+            bgColor="gray.400"
             alignItems="center"
-            justifyContent="center"
+            justifyContent="space-between"
+            gap={5}
+            px={5}
           >
-            <Image src={Plus} />
+            <Image src={MagnifyingGlass} />
+            <Input variant="unstyled" placeholder="Search" />
+            <Image src={Bell} />
+            {loadingProfile ? (
+              <AvatarChakra size="sm" />
+            ) : (
+              <Avatar image={dataProfile.avatar} />
+            )}
           </Flex>
-        </Flex>
-        {loadingTasks ? (
-          <Text>Loading</Text>
-        ) : isDashboard ? (
-          <Dashboard data={dataSorted} />
-        ) : (
-          <MyTask data={dataSorted} />
-        )}
-      </Box>
-    </DragDropContext>
+          <Flex justifyContent="space-between" my={8}>
+            <Flex gap={3}>
+              <Button
+                variant={!isDashboard ? 'outline' : 'ghost'}
+                onClick={() => setIsDashboard(false)}
+              >
+                <Image src={!isDashboard ? ListSelected : List} />
+              </Button>
+              <Button
+                variant={isDashboard ? 'outline' : 'ghost'}
+                onClick={() => setIsDashboard(true)}
+              >
+                <Image src={isDashboard ? ColumnSelected : Column} />
+              </Button>
+            </Flex>
+            <Button onClick={onOpen}>
+              <Image src={Plus} />
+            </Button>
+          </Flex>
+          {loadingTasks ? (
+            <Text>Loading</Text>
+          ) : isDashboard ? (
+            <Dashboard data={dataSorted} />
+          ) : (
+            <MyTask data={dataSorted} />
+          )}
+        </Box>
+      </DragDropContext>
+    </>
   );
 };
 

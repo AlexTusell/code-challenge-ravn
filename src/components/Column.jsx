@@ -13,6 +13,7 @@ const Column = ({ status, tasks, index }) => {
           <Flex
             flexDir="column"
             gap={3}
+            h="100%"
             ref={droppableProvided.innerRef}
             {...droppableProvided.droppableProps}
           >

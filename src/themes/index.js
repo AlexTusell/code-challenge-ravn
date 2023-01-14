@@ -1,4 +1,5 @@
 import { extendTheme } from '@chakra-ui/react';
+import Button from './components/button';
 
 export default extendTheme({
   styles: {
@@ -11,6 +12,7 @@ export default extendTheme({
   },
   colors: {
     gray: {
+      300: '#393D41',
       400: '#2C2F33',
       700: '#222528',
     },
@@ -22,5 +24,7 @@ export default extendTheme({
     heading: `'Raleway', sans-serif`,
     body: `'Raleway', sans-serif`,
   },
-  components: {},
+  components: {
+    Button,
+  },
 });

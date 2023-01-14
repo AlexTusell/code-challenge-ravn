@@ -5,7 +5,7 @@ import Sidebar from '../components/Sidebar';
 
 const Home = () => {
   return (
-    <Flex mt="2.5vh" px={12} gap={12}>
+    <Flex mt="2.5vh" px={8} gap={8}>
       <Sidebar />
       <Workspace />
     </Flex>
