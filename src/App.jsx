@@ -1,7 +1,14 @@
+import { Route, Routes } from 'react-router';
+import Home from './pages/Home';
+import NotFound from './pages/NotFound';
+
 function App() {
   return (
     <div>
-      <h1>Code Challenge</h1>
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="*" element={<NotFound />} />
+      </Routes>
     </div>
   );
 }
