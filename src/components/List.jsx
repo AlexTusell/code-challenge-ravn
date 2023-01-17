@@ -5,14 +5,33 @@ import Item from './item';
 
 const List = ({ status, tasks, index }) => {
   return (
-    <Flex w="100%" gap={6} flexDir="column">
-      <Text>{`${status} (${tasks.length})`}</Text>
+    <Flex w="100%" flexDir="column">
+      <Flex
+        bgColor="gray.400"
+        gap={2}
+        h={14}
+        borderRadius="4px"
+        alignItems="center"
+        pl={5}
+        borderWidth={2}
+        borderStyle="solid"
+        borderColor="gray.300"
+      >
+        <Text fontSize="18px" fontWeight="600" lineHeight="32px">
+          {status}
+        </Text>
+        <Text
+          fontSize="18px"
+          fontWeight="600"
+          lineHeight="32px"
+          color="gray.250"
+        >{` (${tasks.length})`}</Text>
+      </Flex>
 
       <Droppable droppableId={index}>
         {(droppableProvided) => (
           <Flex
             flexDir="column"
-            gap={4}
             ref={droppableProvided.innerRef}
             {...droppableProvided.droppableProps}
           >

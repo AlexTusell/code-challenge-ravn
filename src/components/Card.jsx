@@ -1,19 +1,26 @@
 import { Box, Flex, Stack, Text } from '@chakra-ui/react';
-import { format, isSameDay, isYesterday, isTomorrow } from 'date-fns';
-import React from 'react';
+import React, { useContext } from 'react';
 import { Draggable } from 'react-beautiful-dnd';
+import { IDContext } from '../contexts/IDContext';
+import {
+  formatDate,
+  numbersEstimatedPoints,
+  taskTimeIndicator,
+} from '../util/Conversions';
 import Avatar from './Avatar';
+import CardMenu from './menus/CardMenu';
+import TagsContainer from './TagsContainer';
 
 const Card = ({ task, index }) => {
-  const formatDate = (date) => {
-    const dateNow = new Date();
-    const dateParsed = Date.parse(date);
+  const { setIdDelete, setIdUpdate } = useContext(IDContext);
 
-    if (isSameDay(dateParsed, dateNow)) return 'Today';
-    if (isTomorrow(dateParsed, dateNow)) return 'Tomorrow';
-    if (isYesterday(dateParsed, dateNow)) return 'Yesteday';
-    return format(Date.parse(date), 'PP');
+  const handleDelete = () => {
+    setIdDelete(task.id);
   };
+  const handleUpdate = () => {
+    setIdUpdate(task.id);
+  };
+
   return (
     <Draggable key={task.id} draggableId={`${task.id}`} index={index}>
       {(draggableProvided, dragableSnapshot) => (
@@ -29,19 +36,40 @@ const Card = ({ task, index }) => {
           {...draggableProvided.draggableProps}
           {...draggableProvided.dragHandleProps}
         >
+          <Flex justifyContent="space-between" alignItems="center">
+            <Box overflow="hidden">
+              <Text fontSize="18px" fontWeight="600" lineHeight="32px">
+                {task.name}
+              </Text>
+            </Box>
+            <CardMenu deleteAction={handleDelete} updateAction={handleUpdate} />
+          </Flex>
           <Flex justifyContent="space-between">
-            <Text>{task.name}</Text>
-            <Text>...</Text>
+            <Text fontSize="15px" fontWeight="600" lineHeight="24px">{`${
+              numbersEstimatedPoints[task.pointEstimate]
+            } Points`}</Text>
+            {task.dueDate && (
+              <Flex
+                bgColor={`${taskTimeIndicator(task.dueDate)}.200`}
+                color={`${taskTimeIndicator(task.dueDate)}.500`}
+                justifyContent="center"
+                alignItems="center"
+                py={1}
+                px={4}
+                borderRadius="4px"
+              >
+                <Text fontSize="15px" fontWeight="600" lineHeight="24px">
+                  {formatDate(task.dueDate)}
+                </Text>
+              </Flex>
+            )}
           </Flex>
-          <Box textAlign="right">
-            <Text>{formatDate(task.dueDate)}</Text>
-          </Box>
-          <Flex gap={2}>
-            {task.tags.map((tag, idx) => (
-              <Text key={idx}>{tag}</Text>
-            ))}
-          </Flex>
-          <Avatar image={task.assignee.avatar} />
+          <TagsContainer tags={task.tags} />
+          {task.assignee ? (
+            <Avatar image={task.assignee.avatar} />
+          ) : (
+            <Text fontStyle="italic">Not Assigned</Text>
+          )}
         </Stack>
       )}
     </Draggable>

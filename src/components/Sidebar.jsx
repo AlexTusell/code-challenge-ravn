@@ -41,7 +41,9 @@ const Sidebar = () => {
           gap={4}
         >
           <Image src={isDashboard ? ColumnSelected : Column} />
-          <Text fontSize="15px">DASHBOARD</Text>
+          <Text fontSize="15px" fontWeight="600" lineHeight="24px">
+            DASHBOARD
+          </Text>
         </Flex>
         <Flex
           h="56px"
@@ -61,7 +63,9 @@ const Sidebar = () => {
           gap={4}
         >
           <Image src={!isDashboard ? ListSelected : List} />
-          <Text fontSize="15px">MY TASK</Text>
+          <Text fontSize="15px" fontWeight="600" lineHeight="24px">
+            MY TASK
+          </Text>
         </Flex>
       </Flex>
     </Flex>

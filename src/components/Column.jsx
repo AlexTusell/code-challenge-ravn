@@ -6,7 +6,11 @@ import Card from './Card';
 const Column = ({ status, tasks, index }) => {
   return (
     <Flex w="20%" flexDir="column" gap={6}>
-      <Text>{`${status} (${tasks.length})`}</Text>
+      <Text
+        fontSize="18px"
+        fontWeight="600"
+        lineHeight="32px"
+      >{`${status} (${tasks.length})`}</Text>
 
       <Droppable droppableId={index}>
         {(droppableProvided) => (

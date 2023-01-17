@@ -1,4 +1,4 @@
-const baseButtonStyle = (prop) => {
+const baseButtonStyle = () => {
   return {
     _hover: {
       transform: 'scale(1.03)',
