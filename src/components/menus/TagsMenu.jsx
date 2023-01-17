@@ -31,15 +31,19 @@ const TagsMenu = ({ value, set, data }) => {
       <MenuList bgColor="gray.300">
         <CheckboxGroup defaultValue={value}>
           <Stack spacing={[1, 5]} dir="column" p={4}>
-            {data.__type.enumValues.map((item, idx) => (
-              <Checkbox
-                key={idx}
-                value={item.name}
-                onChange={() => set(item.name)}
-              >
-                {item.name}
-              </Checkbox>
-            ))}
+            {data ? (
+              data.__type.enumValues.map((item, idx) => (
+                <Checkbox
+                  key={idx}
+                  value={item.name}
+                  onChange={() => set(item.name)}
+                >
+                  {item.name}
+                </Checkbox>
+              ))
+            ) : (
+              <Text fontStyle="italic">No Data Found</Text>
+            )}
           </Stack>
         </CheckboxGroup>
       </MenuList>

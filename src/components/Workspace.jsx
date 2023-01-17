@@ -5,6 +5,7 @@ import {
   Flex,
   Image,
   Input,
+  Tooltip,
   useDisclosure,
 } from '@chakra-ui/react';
 import React, { useContext, useEffect, useMemo, useState } from 'react';
@@ -33,13 +34,17 @@ import {
 import ConfirmModal from './modals/ConfirmModal';
 import { IDContext } from '../contexts/IDContext';
 import { columnOrder, reorderColumnList } from '../util/Conversions';
+import { toastErrorContext } from '../contexts/ToastErrorContext';
+import { useNavigate } from 'react-router';
 
 const Workspace = () => {
+  const navigate = useNavigate();
   const [dataSorted, setDataSorted] = useState(undefined);
   const [updatingBoard, setUpdatingBoard] = useState(false);
   const { isDashboard, setIsDashboard } = useContext(ViewContext);
   const { idDelete, setIdDelete, idUpdate, setIdUpdate } =
     useContext(IDContext);
+  const { handleError } = useContext(toastErrorContext);
   const {
     isOpen: isOpenTaskModal,
     onOpen: onOpenTaskModal,
@@ -62,23 +67,32 @@ const Workspace = () => {
     error: errorProfile,
     data: dataProfile,
   } = useQuery(GET_PROFILE);
-  const [
-    createTask,
-    { data: dataCreate, loading: loadingCreate, error: errorCreate },
-  ] = useMutation(CREATE_TASK);
-  const [
-    updateTask,
-    { data: dataUpdate, loading: loadingUpdate, error: errorUpdate },
-  ] = useMutation(UPDATE_TASK);
-  const [
-    deleteTask,
-    { data: dataDelete, loading: loadingDelete, error: errorDelete },
-  ] = useMutation(DELETE_TASK);
+  const [createTask, { data: dataCreate, error: errorCreate }] =
+    useMutation(CREATE_TASK);
+  const [updateTask, { data: dataUpdate, error: errorUpdate }] =
+    useMutation(UPDATE_TASK);
+  const [deleteTask, { data: dataDelete, error: errorDelete }] =
+    useMutation(DELETE_TASK);
 
   const isLoading = useMemo(
     () => loadingTasks || loadingProfile || !dataSorted,
     [loadingTasks, loadingProfile, dataSorted]
   );
+
+  useEffect(() => {
+    if (errorTasks) handleError(errorTasks.message);
+    if (errorProfile) handleError(errorProfile.message);
+    if (errorCreate) handleError(errorCreate.message);
+    if (errorUpdate) handleError(errorUpdate.message);
+    if (errorDelete) handleError(errorDelete.message);
+  }, [
+    errorTasks,
+    errorProfile,
+    errorCreate,
+    errorUpdate,
+    errorDelete,
+    handleError,
+  ]);
 
   useEffect(() => {
     if (idDelete) onOpenConfirmModal();
@@ -204,7 +218,7 @@ const Workspace = () => {
         confirm={handleDelete}
       />
       <DragDropContext onDragEnd={onDragEnd}>
-        <Box w="100%">
+        <Box w="100%" mb={5}>
           <Flex
             w="100%"
             h="64px"
@@ -218,10 +232,14 @@ const Workspace = () => {
             <Image src={MagnifyingGlass} />
             <Input variant="unstyled" placeholder="Search" />
             <Image src={Bell} />
-            {isLoading ? (
+            {isLoading || !dataProfile ? (
               <AvatarChakra size="sm" />
             ) : (
-              <Avatar image={dataProfile.avatar} />
+              <Tooltip label={dataProfile.profile.fullName}>
+                <Box onClick={() => navigate('/settings')}>
+                  <Avatar image={dataProfile.profile.avatar} />
+                </Box>
+              </Tooltip>
             )}
           </Flex>
           <Flex justifyContent="space-between" my={8}>
@@ -239,7 +257,7 @@ const Workspace = () => {
                 <Image src={isDashboard ? ColumnSelected : Column} />
               </Button>
             </Flex>
-            <Button onClick={onOpenTaskModal}>
+            <Button onClick={onOpenTaskModal} isDisabled={isLoading}>
               <Image src={Plus} />
             </Button>
           </Flex>

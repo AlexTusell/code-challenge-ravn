@@ -31,14 +31,18 @@ const AssigneeMenu = ({ value, set, data }) => {
         </Flex>
       </MenuButton>
       <MenuList bgColor="gray.300">
-        {data.users.map((item, idx) => (
-          <MenuItem key={idx} bgColor="gray.300" onClick={() => set(item)}>
-            <Flex gap={2}>
-              <Avatar image={item.avatar} />
-              <Text>{item.fullName}</Text>
-            </Flex>
-          </MenuItem>
-        ))}
+        {data ? (
+          data.users.map((item, idx) => (
+            <MenuItem key={idx} bgColor="gray.300" onClick={() => set(item)}>
+              <Flex gap={2}>
+                <Avatar image={item.avatar} />
+                <Text>{item.fullName}</Text>
+              </Flex>
+            </MenuItem>
+          ))
+        ) : (
+          <Text fontStyle="italic">No Data Found</Text>
+        )}
       </MenuList>
     </Menu>
   );

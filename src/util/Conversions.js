@@ -28,9 +28,13 @@ export const formatDate = (date) => {
 };
 
 export const taskTimeIndicator = (date) => {
-  if (isAfter(new Date(), new Date(date))) {
+  const dateNow = new Date();
+  const dueDate = new Date(date);
+  if (isSameDay(dueDate, dateNow)) {
+    return 'yellow';
+  } else if (isAfter(dateNow, dueDate)) {
     return 'orange';
-  } else if (isAfter(new Date(), sub(new Date(date), { days: 2 }))) {
+  } else if (isAfter(dateNow, sub(dueDate, { days: 1 }))) {
     return 'yellow';
   } else {
     return 'white';

@@ -13,6 +13,7 @@ import {
 } from '@chakra-ui/react';
 import React, { useContext, useEffect, useMemo, useState } from 'react';
 import { IDContext } from '../../contexts/IDContext';
+import { toastErrorContext } from '../../contexts/ToastErrorContext';
 import {
   GET_POINT_ESTIMATE,
   GET_TASK_TAG,
@@ -31,6 +32,7 @@ const TaskModal = ({ task, isOpen, onClose, create, update }) => {
   const [dueDate, setDueDate] = useState(undefined);
 
   const { setIdUpdate } = useContext(IDContext);
+  const { handleError } = useContext(toastErrorContext);
 
   useEffect(() => {
     if (task) {
@@ -62,6 +64,12 @@ const TaskModal = ({ task, isOpen, onClose, create, update }) => {
     () => loadingPoint || loadingUsers || loadingTag,
     [loadingPoint, loadingUsers, loadingTag]
   );
+
+  useEffect(() => {
+    if (errorPoint) handleError(errorPoint.message);
+    if (errorUsers) handleError(errorUsers.message);
+    if (errorTag) handleError(errorTag.message);
+  }, [errorPoint, errorUsers, errorTag, handleError]);
 
   const readyToSend = useMemo(
     () =>

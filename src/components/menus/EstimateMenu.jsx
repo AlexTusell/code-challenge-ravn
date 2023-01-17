@@ -6,6 +6,7 @@ import {
   MenuButton,
   MenuItem,
   MenuList,
+  Text,
 } from '@chakra-ui/react';
 import React from 'react';
 import { numbersEstimatedPoints } from '../../util/Conversions';
@@ -21,11 +22,19 @@ const EstimateMenu = ({ value, set, data }) => {
         </Flex>
       </MenuButton>
       <MenuList bgColor="gray.300">
-        {data.__type.enumValues.map((item, idx) => (
-          <MenuItem key={idx} bgColor="gray.300" onClick={() => set(item.name)}>
-            {`${numbersEstimatedPoints[item.name]} Points`}
-          </MenuItem>
-        ))}
+        {data ? (
+          data.__type.enumValues.map((item, idx) => (
+            <MenuItem
+              key={idx}
+              bgColor="gray.300"
+              onClick={() => set(item.name)}
+            >
+              {`${numbersEstimatedPoints[item.name]} Points`}
+            </MenuItem>
+          ))
+        ) : (
+          <Text fontStyle="italic">No Data Found</Text>
+        )}
       </MenuList>
     </Menu>
   );
