@@ -6,7 +6,15 @@ export const ViewContext = React.createContext({
 });
 
 export const ViewContextProvider = ({ children }) => {
-  const [isDashboard, setIsDashboard] = useState(true);
+  const exist = localStorage.getItem('dashboard-view');
+  const [isDashboard, setIsDashboardHook] = useState(
+    exist ? localStorage.getItem('dashboard-view') === 'true' : true
+  );
+
+  const setIsDashboard = (value) => {
+    localStorage.setItem('dashboard-view', value);
+    setIsDashboardHook(value);
+  };
   return (
     <ViewContext.Provider value={{ isDashboard, setIsDashboard }}>
       {children}
