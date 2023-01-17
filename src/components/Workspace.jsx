@@ -5,10 +5,9 @@ import {
   Flex,
   Image,
   Input,
-  Text,
   useDisclosure,
 } from '@chakra-ui/react';
-import React, { useContext, useEffect, useState } from 'react';
+import React, { useContext, useEffect, useMemo, useState } from 'react';
 import { DragDropContext } from 'react-beautiful-dnd';
 import MagnifyingGlass from '../img/magnifying glass.svg';
 import Bell from '../img/bell.svg';
@@ -17,116 +16,120 @@ import Column from '../img/column.svg';
 import List from '../img/list.svg';
 import ColumnSelected from '../img/column selected.svg';
 import ListSelected from '../img/list selected.svg';
-import { gql, useQuery } from '@apollo/client';
+import { useMutation, useQuery } from '@apollo/client';
 import Dashboard from './Dashboard';
 import { ViewContext } from '../contexts/ViewContext';
 import MyTask from './MyTask';
 import Avatar from './Avatar';
-import TaskModal from './TaskModal';
-
-const GET_PROFILE = gql`
-  query {
-    profile {
-      avatar
-      createdAt
-      email
-      fullName
-      id
-      type
-      updatedAt
-    }
-  }
-`;
-
-const GET_TASKS = gql`
-  query {
-    tasks(input: {}) {
-      assignee {
-        avatar
-        createdAt
-        email
-        fullName
-        id
-        type
-        updatedAt
-      }
-      createdAt
-      creator {
-        avatar
-        createdAt
-        email
-        fullName
-        id
-        type
-        updatedAt
-      }
-      dueDate
-      id
-      name
-      pointEstimate
-      position
-      status
-      tags
-    }
-  }
-`;
-
-const reorderColumnList = (sourceCol, startIndex, endIndex) => {
-  const newTask = Array.from(sourceCol.tasks);
-  const [removed] = newTask.splice(startIndex, 1);
-  newTask.splice(endIndex, 0, removed);
-
-  return newTask;
-};
+import TaskModal from './modals/TaskModal';
+import Loader from './Loader';
+import {
+  CREATE_TASK,
+  DELETE_TASK,
+  GET_PROFILE,
+  GET_TASKS,
+  UPDATE_TASK,
+} from '../util/Queries';
+import ConfirmModal from './modals/ConfirmModal';
+import { IDContext } from '../contexts/IDContext';
+import { columnOrder, reorderColumnList } from '../util/Conversions';
 
 const Workspace = () => {
+  const [dataSorted, setDataSorted] = useState(undefined);
+  const [updatingBoard, setUpdatingBoard] = useState(false);
+  const { isDashboard, setIsDashboard } = useContext(ViewContext);
+  const { idDelete, setIdDelete, idUpdate, setIdUpdate } =
+    useContext(IDContext);
+  const {
+    isOpen: isOpenTaskModal,
+    onOpen: onOpenTaskModal,
+    onClose: onCloseTaskModal,
+  } = useDisclosure();
+  const {
+    isOpen: isOpenConfirmModal,
+    onOpen: onOpenConfirmModal,
+    onClose: onCloseConfirmModal,
+  } = useDisclosure();
+
   const {
     loading: loadingTasks,
     error: errorTasks,
     data: dataTasks,
+    refetch,
   } = useQuery(GET_TASKS);
   const {
     loading: loadingProfile,
     error: errorProfile,
     data: dataProfile,
   } = useQuery(GET_PROFILE);
-  const [dataSorted, setDataSorted] = useState([]);
+  const [
+    createTask,
+    { data: dataCreate, loading: loadingCreate, error: errorCreate },
+  ] = useMutation(CREATE_TASK);
+  const [
+    updateTask,
+    { data: dataUpdate, loading: loadingUpdate, error: errorUpdate },
+  ] = useMutation(UPDATE_TASK);
+  const [
+    deleteTask,
+    { data: dataDelete, loading: loadingDelete, error: errorDelete },
+  ] = useMutation(DELETE_TASK);
 
-  const { isDashboard, setIsDashboard } = useContext(ViewContext);
-  const { isOpen, onOpen, onClose } = useDisclosure();
-  console.log(isOpen);
+  const isLoading = useMemo(
+    () => loadingTasks || loadingProfile || !dataSorted,
+    [loadingTasks, loadingProfile, dataSorted]
+  );
 
   useEffect(() => {
-    if (dataTasks) {
-      const backLogColumn = {
-        status: 'BACKLOG',
-        tasks: dataTasks.tasks.filter((item) => item.status === 'BACKLOG'),
-      };
-      const cancelledColumn = {
-        status: 'CANCELLED',
-        tasks: dataTasks.tasks.filter((item) => item.status === 'CANCELLED'),
-      };
-      const todoColumn = {
-        status: 'TODO',
-        tasks: dataTasks.tasks.filter((item) => item.status === 'TODO'),
-      };
-      const inProgressColumn = {
-        status: 'IN_PROGRESS',
-        tasks: dataTasks.tasks.filter((item) => item.status === 'IN_PROGRESS'),
-      };
-      const doneColumn = {
-        status: 'DONE',
-        tasks: dataTasks.tasks.filter((item) => item.status === 'DONE'),
-      };
-      setDataSorted([
-        backLogColumn,
-        cancelledColumn,
-        todoColumn,
-        inProgressColumn,
-        doneColumn,
-      ]);
+    if (idDelete) onOpenConfirmModal();
+    if (idUpdate) onOpenTaskModal();
+  }, [idDelete, idUpdate, onOpenConfirmModal, onOpenTaskModal]);
+
+  const handleCreate = (input) => {
+    createTask({
+      variables: {
+        input: input,
+      },
+    });
+  };
+  const handleUpdate = (input) => {
+    updateTask({
+      variables: {
+        input: input,
+      },
+    });
+    setIdUpdate('');
+  };
+
+  const handleDelete = () => {
+    deleteTask({
+      variables: {
+        input: { id: idDelete },
+      },
+    });
+    setIdDelete('');
+  };
+
+  useEffect(() => {
+    if (dataCreate || dataUpdate || dataDelete) {
+      refetch();
     }
-  }, [dataTasks, loadingTasks]);
+  }, [dataCreate, dataUpdate, dataDelete, refetch]);
+
+  useEffect(() => {
+    if (dataTasks && dataSorted && updatingBoard) {
+      setDataSorted([...dataSorted], columnOrder(dataTasks));
+      setUpdatingBoard(false);
+      return;
+    }
+    if (dataTasks && dataSorted && (dataCreate || dataUpdate || dataDelete)) {
+      setDataSorted(columnOrder(dataTasks));
+      return;
+    }
+    if (dataTasks && !dataSorted) {
+      setDataSorted(columnOrder(dataTasks));
+    }
+  }, [dataTasks]);
 
   const onDragEnd = (result) => {
     const { destination, source } = result;
@@ -154,7 +157,12 @@ const Workspace = () => {
 
       const newDataSorted = [...dataSorted];
       newDataSorted[source.droppableId].tasks = newColumn;
-      setDataSorted(newDataSorted);
+
+      handleUpdate({
+        id: newColumn[destination.index].id,
+        position: destination.index + 1,
+      });
+      setUpdatingBoard(true);
       return;
     }
     //when the destination is other STATUS
@@ -167,12 +175,34 @@ const Workspace = () => {
     const newDataSorted = [...dataSorted];
     newDataSorted[source.droppableId].tasks = startTasks;
     newDataSorted[destination.droppableId].tasks = endTasks;
-    setDataSorted(newDataSorted);
+
+    handleUpdate({
+      id: endTasks[destination.index].id,
+      status: destinationCol.status,
+      position: destination.index + 1,
+    });
+    setUpdatingBoard(true);
+    return;
   };
 
   return (
     <>
-      <TaskModal isOpen={isOpen} onClose={onClose} />
+      <TaskModal
+        isOpen={isOpenTaskModal}
+        onClose={onCloseTaskModal}
+        task={
+          idUpdate
+            ? dataTasks.tasks.find((task) => task.id === idUpdate)
+            : undefined
+        }
+        create={handleCreate}
+        update={handleUpdate}
+      />
+      <ConfirmModal
+        isOpen={isOpenConfirmModal}
+        onClose={onCloseConfirmModal}
+        confirm={handleDelete}
+      />
       <DragDropContext onDragEnd={onDragEnd}>
         <Box w="100%">
           <Flex
@@ -188,7 +218,7 @@ const Workspace = () => {
             <Image src={MagnifyingGlass} />
             <Input variant="unstyled" placeholder="Search" />
             <Image src={Bell} />
-            {loadingProfile ? (
+            {isLoading ? (
               <AvatarChakra size="sm" />
             ) : (
               <Avatar image={dataProfile.avatar} />
@@ -209,12 +239,12 @@ const Workspace = () => {
                 <Image src={isDashboard ? ColumnSelected : Column} />
               </Button>
             </Flex>
-            <Button onClick={onOpen}>
+            <Button onClick={onOpenTaskModal}>
               <Image src={Plus} />
             </Button>
           </Flex>
-          {loadingTasks ? (
-            <Text>Loading</Text>
+          {isLoading ? (
+            <Loader />
           ) : isDashboard ? (
             <Dashboard data={dataSorted} />
           ) : (
