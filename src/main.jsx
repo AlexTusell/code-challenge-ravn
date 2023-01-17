@@ -12,7 +12,9 @@ import { ChakraProvider } from '@chakra-ui/react';
 import App from './App';
 import theme from './themes';
 import './index.css';
+import 'react-day-picker/dist/style.css';
 import { ViewContextProvider } from './contexts/ViewContext';
+import { IDContextProvider } from './contexts/IDContext';
 
 const httpLink = createHttpLink({
   uri: 'https://syn-api-prod.herokuapp.com/graphql',
@@ -42,7 +44,9 @@ ReactDOM.createRoot(document.getElementById('root')).render(
       <BrowserRouter>
         <ApolloProvider client={client}>
           <ViewContextProvider>
-            <App />
+            <IDContextProvider>
+              <App />
+            </IDContextProvider>
           </ViewContextProvider>
         </ApolloProvider>
       </BrowserRouter>
