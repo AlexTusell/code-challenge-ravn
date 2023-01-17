@@ -30,7 +30,7 @@ npm run dev
 
 ![ezgif com-gif-maker(1)](https://user-images.githubusercontent.com/60715793/212973850-2a5c884b-cbc1-4042-9bb7-00568d0ecd47.gif)
 
-- Drag and Drop Taks
+- Drag and Drop Tasks
 
 ![ezgif com-gif-maker](https://user-images.githubusercontent.com/60715793/212973358-f657f572-37d3-4874-b588-1d3bd2be9c4f.gif)
 
@@ -43,8 +43,8 @@ Using vite for a better perform and speed
 - vite ⚡
 - React 18 ⚛️
 - React Router DOM 🏄
-- eslint ✨
-- eslin 🔨
+- prettier ✨
+- eslint 🔨
 
 ## Dependencies
 - React Router
